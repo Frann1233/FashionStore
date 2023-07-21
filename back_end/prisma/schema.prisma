@@ -1,0 +1,98 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Product {
+  id          Int       @id @default(autoincrement())
+  name        String
+  description String
+  price       Float
+  image       String?
+  type        Type      @relation(fields: [typeId], references: [id])
+  category    Category  @relation(fields: [categoryId], references: [id])
+  brand       Brand     @relation(fields: [brandId], references: [id])
+  material    Material? @relation(fields: [materialId], references: [id])
+  style       Style?    @relation(fields: [styleId], references: [id])
+  season      Season?   @relation(fields: [seasonId], references: [id])
+  size        Size      @relation(fields: [sizeId], references: [id])
+  color       Color     @relation(fields: [colorId], references: [id])
+  sex         Sex
+  typeId      Int
+  categoryId  Int
+  brandId     Int
+  materialId  Int?
+  styleId     Int?
+  seasonId    Int?
+  sizeId      Int
+  colorId     Int
+  createdAt   DateTime  @default(now())
+}
+
+model Type {
+  id        Int       @id @default(autoincrement())
+  name      String
+  products  Product[]
+  createdAt DateTime  @default(now())
+}
+
+model Category {
+  id        Int       @id @default(autoincrement())
+  name      String
+  products  Product[]
+  createdAt DateTime  @default(now())
+}
+
+model Brand {
+  id        Int       @id @default(autoincrement())
+  name      String
+  products  Product[]
+  createdAt DateTime  @default(now())
+}
+
+model Size {
+  id        Int       @id @default(autoincrement())
+  name      String
+  products  Product[]
+  createdAt DateTime  @default(now())
+}
+
+model Color {
+  id        Int       @id @default(autoincrement())
+  name      String
+  products  Product[]
+  createdAt DateTime  @default(now())
+}
+
+model Material {
+  id        Int       @id @default(autoincrement())
+  name      String
+  products  Product[]
+  createdAt DateTime  @default(now())
+}
+
+model Style {
+  id        Int       @id @default(autoincrement())
+  name      String
+  products  Product[]
+  createdAt DateTime  @default(now())
+}
+
+model Season {
+  id        Int       @id @default(autoincrement())
+  name      String
+  products  Product[]
+  createdAt DateTime  @default(now())
+}
+
+enum Sex {
+  MALE
+  FEMALE
+}
