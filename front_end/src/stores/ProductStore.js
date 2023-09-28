@@ -1,4 +1,4 @@
-import { action, makeObservable, observable, runInAction } from 'mobx';
+import { action, makeObservable, observable, runInAction, toJS } from 'mobx';
 import Pagination from './PaginationStore';
 
 export const SORTBY_LABEL_NAME = 'Name';
@@ -10,16 +10,23 @@ export default class ProductStore {
 
   fetchedProduct = [];
 
+  similarProducts = [];
+
+  subCategoryProducts = [];
+
+  fetchedSizes = [];
+
+  fetchedImageColors = [];
+
+  selectedSizes = [];
+
   count = null;
 
   description = null;
 
   price = null;
 
-  image = {
-    src: null,
-    file: null,
-  };
+  images = [];
 
   sort = {
     by: null,
@@ -44,16 +51,17 @@ export default class ProductStore {
 
   sex = null;
 
+  subCategory = null;
+
   filter = {
-    type: null,
-    category: null,
-    brand: null,
-    material: null,
-    style: null,
-    season: null,
-    size: null,
-    color: null,
-    sex: null,
+    filterCategoryId: null,
+    filterCategory: null,
+    filterSex: null,
+    size: this.selectedSizes,
+    filterImageColors: this.selectedImageColors,
+    subCategory: null,
+    minPrice: null,
+    maxPrice: null,
   };
 
   pagination = new Pagination();
@@ -66,10 +74,14 @@ export default class ProductStore {
       id: observable,
       name: observable,
       fetchedProduct: observable,
+      fetchedImageColors: observable,
+      fetchedSizes: observable,
+      selectedSizes: observable,
+      similarProducts: observable,
       count: observable,
       description: observable,
       price: observable,
-      image: observable,
+      images: observable,
       sort: observable,
       type: observable,
       category: observable,
@@ -81,36 +93,33 @@ export default class ProductStore {
       color: observable,
       sex: observable,
       filter: observable,
+      setFetchedSizes: observable,
+      setFetchedImageColors: observable,
+      setMinPrice: action,
+      setMaxPrice: action,
+      setSortBy: action,
+      setSortAsc: action,
       getPagination: action,
       setName: action,
       setDescription: action,
       setPrice: action,
       setImageFile: action,
-      setSortBy: action,
-      setSortAsc: action,
-      setType: action,
       setCategory: action,
-      setBrand: action,
-      setMaterial: action,
-      setStyle: action,
-      setSeason: action,
-      setSize: action,
-      setColor: action,
       setSex: action,
-      setFilterType: action,
       setFilterCategory: action,
-      setFilterBrand: action,
-      setFilterMaterial: action,
-      setFilterStyle: action,
-      setFilterSeason: action,
-      setFilterSize: action,
-      setFilterColor: action,
       setFilterSex: action,
+      setFilterSubCategory: action,
+      setSelectedSizes: action,
+      setSelectedImageColors: action,
       getMany: action,
       get: action,
       update: action,
       create: action,
       delete: action,
+      getSimilarProducts: action,
+      getProductsBySubcategory: action,
+      getProductSizes: action,
+      getProductImageColors: action,
     });
   }
 
@@ -124,6 +133,21 @@ export default class ProductStore {
     });
   }
 
+  setFetchedSizes(sizes) {
+    runInAction(() => {
+      this.fetchedSizes = sizes;
+      // console.log(this.fetchedSizes)
+    });
+  }
+
+  setFetchedImageColors(imageColors) {
+    runInAction(() => {
+      this.fetchedImageColors = imageColors;
+      console.log(this.fetchedImageColors)
+    })
+  }
+
+
   setDescription(description) {
     runInAction(() => {
       this.description = description;
@@ -136,11 +160,18 @@ export default class ProductStore {
     });
   }
 
-  setImageFile({ imageFile }) {
-    this.image.file = imageFile;
+  setImageFile({ imageFile, colorName }) {
+    const newImage = {
+      src: URL.createObjectURL(imageFile),
+      file: imageFile,
+      colorName: colorName,
+    };
+    runInAction(() => {
+      this.images.push(newImage);
+    })
   }
 
-  setSortBy({ sortBy }) {
+  setSortBy(sortBy) {
     runInAction(() => {
       this.sort.by = sortBy;
     });
@@ -154,131 +185,88 @@ export default class ProductStore {
     this.getMany();
   }
 
-  setType(type) {
-    runInAction(() => {
-      this.type = type;
-    });
-  }
 
   setCategory(category) {
     runInAction(() => {
       this.category = category;
+      this.filter.filterCategory = category
     });
+    this.getMany()
   }
 
-  setBrand(brand) {
+  setCategoryId(categoryId) {
     runInAction(() => {
-      this.brand = brand;
-    });
-  }
-
-  setMaterial(material) {
-    runInAction(() => {
-      this.material = material;
-    });
-  }
-
-  setStyle(style) {
-    runInAction(() => {
-      this.style = style;
-    });
-  }
-
-  setSeason(season) {
-    runInAction(() => {
-      this.season = season;
-    });
-  }
-
-  setSize(size) {
-    runInAction(() => {
-      this.size = size;
-    });
-  }
-
-  setColor(color) {
-    runInAction(() => {
-      this.color = color;
-    });
+      this.filter.categoryId = categoryId;
+    })
+    this.getMany()
   }
 
   setSex(sex) {
     runInAction(() => {
-      this.sex = sex;
+      this.sex = sex.toUpperCase();
+      this.filter.filterSex = sex.toUpperCase();
     });
-  }
-
-  setFilterType(type) {
-    runInAction(() => {
-      this.filter.type = type;
-    });
-    this.getMany();
   }
 
   setFilterCategory(category) {
     runInAction(() => {
-      this.filter.category = category;
-    });
-    this.getMany();
-  }
-
-  setFilterBrand(brand) {
-    runInAction(() => {
-      this.filter.brand = brand;
-    });
-    this.getMany();
-  }
-
-  setFilterMaterial(material) {
-    runInAction(() => {
-      this.filter.material = material;
-    });
-    this.getMany();
-  }
-
-  setFilterStyle(style) {
-    runInAction(() => {
-      this.filter.style = style;
-    });
-    this.getMany();
-  }
-
-  setFilterSeason(season) {
-    runInAction(() => {
-      this.filter.season = season;
-    });
-    this.getMany();
-  }
-
-  setFilterSize(size) {
-    runInAction(() => {
-      this.filter.size = size;
-    });
-    this.getMany();
-  }
-
-  setFilterColor(color) {
-    runInAction(() => {
-      this.filter.color = color;
+      this.filter.filterCategoryId = category;
     });
     this.getMany();
   }
 
   setFilterSex(sex) {
     runInAction(() => {
-      this.filter.sex = sex;
+      this.filter.filterSex = sex;
     });
     this.getMany();
   }
 
-  async get(productId) {
+  setFilterSubCategory(subCategory) {
+    runInAction(() => {
+      this.filter.subCategory = subCategory;
+    });
+    this.getMany();
+  }
+
+  setMinPrice(minPrice) {
+    runInAction(() => {
+      this.filter.minPrice = minPrice;
+    });
+    this.getMany();
+  }
+
+  setMaxPrice(maxPrice) {
+    runInAction(() => {
+      this.filter.maxPrice = maxPrice;
+    });
+    this.getMany();
+  }
+
+  setSelectedSizes(sizes) {
+    runInAction(() => {
+      this.selectedSizes = sizes;
+      this.filter.size = sizes
+    });
+    this.getMany();
+  }
+
+  setSelectedImageColors(imageColors) {
+    runInAction(() => {
+      this.selectedImageColors = imageColors;
+      this.filter.ImageColors = imageColors;
+    });
+    this.getMany();
+  }
+
+  async get({ productId }) {
     const result = await this.httpService.product.get({ productId });
     runInAction(() => {
       this.id = result.data.id;
       this.name = result.data.name;
       this.description = result.data.description;
       this.price = result.data.price;
-      this.image = result.data.image;
+      this.images = result.data.images;
       this.type = result.data.type;
       this.category = result.data.category;
       this.brand = result.data.brand;
@@ -289,6 +277,7 @@ export default class ProductStore {
       this.color = result.data.color;
       this.sex = result.data.sex;
     });
+    // console.log(result)
   }
 
   async getMany() {
@@ -305,6 +294,8 @@ export default class ProductStore {
         sortName: this.sort.by === SORTBY_LABEL_NAME,
         filter: this.filter,
       });
+      // console.log(this.filter)
+      // console.log('Fetched Products:', result.data.data);
 
       runInAction(() => {
         this.fetchedProduct = result.data.data;
@@ -312,16 +303,22 @@ export default class ProductStore {
         this.count = result.data.count;
         this.pagination.setCount(result.data.count);
       });
+      // console.log(result)
     }
   }
 
   async update() {
+    const images = this.images.map(imageObj => ({
+      url: imageObj.src, // Use URL of the images for updating
+      colorName: imageObj.colorName, // Pass the associated color name
+    }));
+
     await this.httpService.product.update({
       id: this.id,
       name: this.name,
       description: this.description,
       price: this.price,
-      image: this.image,
+      images: images,
       type: this.type,
       category: this.category,
       brand: this.brand,
@@ -335,11 +332,16 @@ export default class ProductStore {
   }
 
   async create() {
+    const images = this.images.map(imageObj => ({
+      url: imageObj.src,
+      colorName: imageObj.colorName,
+    }));
+
     await this.httpService.product.create({
       name: this.name,
       description: this.description,
       price: this.price,
-      image: this.image,
+      images: images,
       type: this.type,
       category: this.category,
       brand: this.brand,
@@ -359,7 +361,7 @@ export default class ProductStore {
       this.name = null;
       this.description = null;
       this.price = null;
-      this.image = null;
+      this.images = null;
       this.type = null;
       this.category = null;
       this.brand = null;
@@ -371,4 +373,69 @@ export default class ProductStore {
       this.sex = null;
     });
   }
+
+  async getSimilarProducts(currentProductId) {
+    if (!this.category || !this.sex || !this.material) {
+      return [];
+    }
+
+    const result = await this.httpService.product.getSimilarProducts({
+      category: this.category.name,
+      sex: this.sex,
+      material: this.material.name,
+      id: this.id,
+    });
+
+    const filteredSimilarProducts = result.data.data.filter((product) => {
+      return (
+        product.sex === this.sex &&
+        product.category.name === this.category.name &&
+        product.material.name === this.material.name &&
+        product.id !== this.id // Exclude the current product
+      );
+    });
+
+    runInAction(() => {
+      this.similarProducts = filteredSimilarProducts;
+    });
+  }
+
+  async getProductsBySubcategory(subCategoryId) {
+
+    const result = await this.httpService.product.getProductsBySubcategory({ subCategoryId });
+    runInAction(() => {
+      this.fetchedProduct = result.data;
+    })
+  }
+
+  async getProductSizes(categoryId, subCategoryId) {
+    try {
+      const result = await this.httpService.product.getProductSizes({
+        categoryId,
+        subCategoryId,
+      });
+
+      this.setFetchedSizes(result);
+    } catch (error) {
+      // Handle any errors here
+      console.error('Error fetching product sizes:', error);
+    }
+  }
+
+  async getProductImageColors(categoryId, subCategoryId) {
+    try {
+      const result = await this.httpService.product.getProductImageColors({
+        categoryId,
+        subCategoryId,
+      });
+
+      console.log(result)
+      this.setFetchedImageColors(result);
+    } catch (error) {
+      // Handle any errors here
+      console.error('Error fetching product image colors:', error);
+    }
+  }
+
 }
+

@@ -6,20 +6,27 @@ import Browse from './pages/Browse';
 import { ThemeProvider } from '@mui/material/styles';
 import theme from './constants/MuiTheme';
 import DefaultLayout from './layouts/DefaultLayout';
-import BrowseMenClothes from './pages/BrowseMenClothes';
-import BrowseMenAccesories from './pages/BrowseMenAccessories';
+import BrowseWithFilter from './pages/BrowseWithFilter';
+import ProductInfo from './pages/ProductInfo';
+import Cart from './pages/Cart';
+import AdminBoard from './pages/AdminBoard';
+import AdminLayout from './layouts/AdminLayout';
 
 function App() {
   return (
     <ThemeProvider theme={theme}>
-      <DefaultLayout>
-        <Routes>
-          <Route path="/" element={<Home />} />
-          <Route path="/browse" element={<Browse />} />
-          <Route path="/browseMenClothes" element={<BrowseMenClothes />} />
-          <Route path="/browseMenAccesories" element={<BrowseMenAccesories />} />
-        </Routes>
-      </DefaultLayout>
+      <Routes>
+        <Route path="/" element={<DefaultLayout><Home /></DefaultLayout>} />
+        <Route path="browse" element={<DefaultLayout><Browse /></DefaultLayout>} />
+        <Route path="browse/:sex" element={<DefaultLayout><Browse /></DefaultLayout>} />
+        <Route path="browse/:sex/:category/:categoryId" element={<DefaultLayout><BrowseWithFilter /></DefaultLayout>} />
+        <Route path="browse/:sex/:category/:categoryId/:subCategoryId" element={<DefaultLayout><BrowseWithFilter /></DefaultLayout>} />
+        <Route path='/productInfo/:productId' element={<DefaultLayout><ProductInfo /></DefaultLayout>} />
+        <Route path='cart' element={<DefaultLayout><Cart /></DefaultLayout>} />
+
+        {/* Use AdminLayout for AdminBoard */}
+        <Route path='admin' element={<AdminLayout><AdminBoard /></AdminLayout>} />
+      </Routes>
     </ThemeProvider>
   );
 }

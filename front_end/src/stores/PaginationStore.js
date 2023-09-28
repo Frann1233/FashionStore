@@ -18,6 +18,10 @@ export default class Pagination {
     if (take) {
       this.take = take;
     }
+
+    // console.log('Initial skip:', this.skip);
+    // console.log('Initial take:', this.take);
+
     makeObservable(this, {
       count: observable,
       skip: observable,

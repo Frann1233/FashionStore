@@ -36,7 +36,7 @@ const Pagination = observer(() => {
 
   return (
     <>
-      <FormControl sx={{ width: '12rem' }}>
+      {/* <FormControl sx={{ width: '12rem' }}>
         <InputLabel id='1'>Sort by</InputLabel>
         <Select
           labelId='1'
@@ -48,8 +48,8 @@ const Pagination = observer(() => {
           <MenuItem value='price-high'>Price High</MenuItem>
           <MenuItem value='a-z'>A-Z</MenuItem>
           <MenuItem value='z-a'>Z-A</MenuItem>
-        </Select>
-      </FormControl>
+        </Select >
+      </FormControl > */}
       <TablePagination
         component="div"
         count={productStore.count}

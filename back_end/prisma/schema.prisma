@@ -1,6 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -11,29 +8,29 @@ datasource db {
 }
 
 model Product {
-  id          Int       @id @default(autoincrement())
-  name        String
-  description String
-  price       Float
-  image       String?
-  type        Type      @relation(fields: [typeId], references: [id])
-  category    Category  @relation(fields: [categoryId], references: [id])
-  brand       Brand     @relation(fields: [brandId], references: [id])
-  material    Material? @relation(fields: [materialId], references: [id])
-  style       Style?    @relation(fields: [styleId], references: [id])
-  season      Season?   @relation(fields: [seasonId], references: [id])
-  size        Size      @relation(fields: [sizeId], references: [id])
-  color       Color     @relation(fields: [colorId], references: [id])
-  sex         Sex
-  typeId      Int
-  categoryId  Int
-  brandId     Int
-  materialId  Int?
-  styleId     Int?
-  seasonId    Int?
-  sizeId      Int
-  colorId     Int
-  createdAt   DateTime  @default(now())
+  id            Int          @id @default(autoincrement())
+  name          String
+  description   String
+  price         Float
+  images        Image[]
+  type          Type         @relation(fields: [typeId], references: [id])
+  category      Category     @relation(fields: [categoryId], references: [id])
+  brand         Brand        @relation(fields: [brandId], references: [id])
+  material      Material?    @relation(fields: [materialId], references: [id])
+  style         Style?       @relation(fields: [styleId], references: [id])
+  season        Season?      @relation(fields: [seasonId], references: [id])
+  sex           Sex
+  size          Size[]
+  color         Color[]
+  typeId        Int
+  categoryId    Int
+  brandId       Int
+  materialId    Int?
+  styleId       Int?
+  seasonId      Int?
+  createdAt     DateTime     @default(now())
+  subCategory   SubCategory? @relation(fields: [subCategoryId], references: [id])
+  subCategoryId Int?
 }
 
 model Type {
@@ -43,11 +40,22 @@ model Type {
   createdAt DateTime  @default(now())
 }
 
+model SubCategory {
+  id         Int       @id @default(autoincrement())
+  name       String
+  image      String
+  category   Category  @relation(fields: [categoryId], references: [id])
+  categoryId Int
+  products   Product[]
+}
+
 model Category {
-  id        Int       @id @default(autoincrement())
-  name      String
-  products  Product[]
-  createdAt DateTime  @default(now())
+  id            Int           @id @default(autoincrement())
+  name          String
+  images        String[]
+  subCategories SubCategory[]
+  products      Product[]
+  createdAt     DateTime      @default(now())
 }
 
 model Brand {
@@ -66,8 +74,9 @@ model Size {
 
 model Color {
   id        Int       @id @default(autoincrement())
-  name      String
+  name      String    @unique
   products  Product[]
+  images    Image[]
   createdAt DateTime  @default(now())
 }
 
@@ -90,6 +99,22 @@ model Season {
   name      String
   products  Product[]
   createdAt DateTime  @default(now())
+}
+
+model User {
+  id        Int      @id @default(autoincrement())
+  name      String
+  email     String   @unique
+  password  String
+  createdAt DateTime @default(now())
+}
+
+model Image {
+  color     Color    @relation(fields: [colorId], references: [id])
+  url       String   @unique
+  colorId   Int
+  Product   Product? @relation(fields: [productId], references: [id])
+  productId Int?
 }
 
 enum Sex {

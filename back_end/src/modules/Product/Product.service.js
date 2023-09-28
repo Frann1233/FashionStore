@@ -1,10 +1,13 @@
+import { parse } from "dotenv";
 import { prisma } from "../../main.js";
+import productMiddleware from "../../middleware/getMiddleware.js";
 
 const create = async (req, res) => {
   const {
     name,
     description,
     price,
+    images,
     sex,
     typeId,
     categoryId,
@@ -13,17 +16,56 @@ const create = async (req, res) => {
     styleId,
     seasonId,
     sizeId,
-    colorId
+    colorId,
+    subCategoryId
   } = req.body;
-  const image = req.file;
+  // const image = req.file;
+
+  let imagesFormatted = {
+    connectOrCreate: images.map(image => {
+      return {
+        where: {
+          url: image.url,
+        },
+        create: {
+          url: image.url,
+          color: {
+            connectOrCreate: {
+              where: {
+                name: image.colorName
+              },
+              create: {
+                name: image.colorName
+              }
+            }
+          }
+        }
+      }
+    })
+  }
+  let size = {
+    connect: sizeId.map(size => {
+      return {
+        id: parseInt(size)
+      }
+    })
+  }
+
+  let color = {
+    connect: colorId.map(color => {
+      return {
+        id: parseInt(color)
+      }
+    })
+  }
 
   const product = await prisma.product.create({
     data: {
       name,
       description,
       price,
-      image,
       sex,
+      images: imagesFormatted,
       type: {
         connect: {
           id: parseInt(typeId),
@@ -54,17 +96,24 @@ const create = async (req, res) => {
           id: parseInt(seasonId),
         },
       },
-      size: {
+      subCategory: {
         connect: {
-          id: parseInt(sizeId),
-        },
+          id: parseInt(subCategoryId),
+        }
       },
-      color: {
-        connect: {
-          id: parseInt(colorId),
-        },
-      },
+      size,
+      color,
     },
+    include: {
+      size: true,
+      color: true,
+      images: {
+        include: {
+          color: true,
+        }
+      },
+      subCategory: true,
+    }
   });
 
   res.send(product);
@@ -80,7 +129,11 @@ const getOne = async (req, res) => {
     select: {
       name: true,
       description: true,
-      image: true,
+      images: {
+        include: {
+          color: true
+        }
+      },
       price: true,
       sex: true,
       type: {
@@ -91,6 +144,7 @@ const getOne = async (req, res) => {
       category: {
         select: {
           name: true,
+          subCategories: true,
         },
       },
       brand: {
@@ -134,6 +188,7 @@ const updateOne = async (req, res) => {
   const name = req.body.name;
   const description = req.body.description;
   const price = req.body.price;
+  const images = req.body.images;
   const sex = req.body.sex;
   const typeId = req.body.typeId;
   const categoryId = req.body.categoryId;
@@ -144,6 +199,30 @@ const updateOne = async (req, res) => {
   const sizeId = req.body.sizeId;
   const colorId = req.body.colorId;
 
+  let imagesFormatted = {
+    connectOrCreate: images.map(image => {
+      console.log(image.colorName)
+      return {
+        where: {
+          url: image.url,
+        },
+        create: {
+          url: image.url,
+          color: {
+            connectOrCreate: {
+              where: {
+                name: image.colorName
+              },
+              create: {
+                name: image.colorName
+              }
+            }
+          }
+        }
+      }
+    })
+  }
+
   const productUpdate = await prisma.product.update({
     where: {
       id: parseInt(id),
@@ -152,6 +231,9 @@ const updateOne = async (req, res) => {
       name,
       description,
       price,
+      images: {
+        set: []
+      },
       sex,
       type: {
         connect: {
@@ -196,11 +278,29 @@ const updateOne = async (req, res) => {
     },
   });
 
+  const rr = await prisma.product.update({
+    where: {
+      id: productUpdate.id
+    },
+    data: {
+      images: imagesFormatted
+    },
+    include: {
+      images: {
+        include: {
+          color: true
+        }
+      }
+    }
+  },)
+
+  console.log(rr)
+
   res.send(productUpdate);
 };
 
 const deleteOne = async (req, res) => {
-  const id = req.body.id;
+  const id = req.params.id;
   const productDelete = await prisma.product.delete({
     where: {
       id: parseInt(id),
@@ -210,4 +310,299 @@ const deleteOne = async (req, res) => {
   res.send(productDelete);
 };
 
-export default { create, getOne, deleteOne, updateOne };
+// const getManyByCategorySubCategory = async (req, res) => {
+//   const categoryId = req.params.categoryId;
+//   const subCategoryId = req.params.subCategoryId;
+
+//   console.log(categoryId, subCategoryId)
+
+//   const products = await prisma.product.findMany({
+//     where: {
+//       category: {
+//         id: parseInt(categoryId),
+//         subCategories: {
+//           some: {
+//             id: parseInt(subCategoryId)
+//           }
+//         }
+//       }
+//     },
+//     select: {
+//       name: true,
+//       description: true,
+//       images: {
+//         include: {
+//           color: true
+//         }
+//       },
+//       price: true,
+//       sex: true,
+//       type: {
+//         select: {
+//           name: true,
+//         },
+//       },
+//       category: {
+//         select: {
+//           name: true,
+//           subCategories: true,
+//         },
+//       },
+//       brand: {
+//         select: {
+//           name: true,
+//         },
+//       },
+//       material: {
+//         select: {
+//           name: true,
+//         },
+//       },
+//       style: {
+//         select: {
+//           name: true,
+//         },
+//       },
+//       season: {
+//         select: {
+//           name: true,
+//         },
+//       },
+//       size: {
+//         select: {
+//           name: true,
+//         },
+//       },
+//       color: {
+//         select: {
+//           name: true,
+//         },
+//       },
+//     },
+//   })
+//   res.send(products)
+// }
+
+// const getManyByCategorySubCategory = async (req, res) => {
+//   const categoryId = parseInt(req.params.categoryId);
+//   const subCategoryId = parseInt(req.params.subCategoryId);
+
+//   const products = await prisma.product.findMany({
+//     where: {
+//       categoryId: categoryId,
+//       subCategoryId: subCategoryId,
+//     },
+//     select: {
+//       name: true,
+//       description: true,
+//       images: {
+//         include: {
+//           color: true,
+//         },
+//       },
+//       price: true,
+//       sex: true,
+//       type: {
+//         select: {
+//           name: true,
+//         },
+//       },
+//       category: {
+//         select: {
+//           name: true,
+//           subCategories: true,
+//         },
+//       },
+//       brand: {
+//         select: {
+//           name: true,
+//         },
+//       },
+//       material: {
+//         select: {
+//           name: true,
+//         },
+//       },
+//       style: {
+//         select: {
+//           name: true,
+//         },
+//       },
+//       season: {
+//         select: {
+//           name: true,
+//         },
+//       },
+//       size: {
+//         select: {
+//           name: true,
+//         },
+//       },
+//       color: {
+//         select: {
+//           name: true,
+//         },
+//       },
+//     },
+//   });
+
+//   res.send(products);
+// };
+
+const getProductsBySubCategory = async (req, res) => {
+  try {
+    const { subCategoryId } = req.params;
+
+    // Fetch products with the specified subCategory ID
+    const products = await prisma.product.findMany({
+      where: {
+        subCategoryId: parseInt(subCategoryId),
+      },
+      select: {
+        id: true,
+        name: true,
+        description: true,
+        price: true,
+        images: {
+          include: {
+            color: true,
+          },
+        },
+        subCategory: true,
+        sex: true,
+        type: {
+          select: {
+            name: true,
+          },
+        },
+        category: {
+          select: {
+            name: true,
+            id: true,
+          },
+        },
+        brand: {
+          select: {
+            name: true,
+          },
+        },
+        material: {
+          select: {
+            name: true,
+          },
+        },
+        style: {
+          select: {
+            name: true,
+          },
+        },
+        season: {
+          select: {
+            name: true,
+          },
+        },
+        size: {
+          select: {
+            name: true,
+          },
+        },
+        color: {
+          select: {
+            name: true,
+          },
+        },
+      },
+    });
+
+    res.send(products);
+  } catch (error) {
+    // Handle errors here and send an appropriate response
+    console.error("Error fetching products by subCategory:", error);
+    res.status(500).send({ error: "Internal server error" });
+  }
+
+};
+
+const getProductSizes = async (req, res) => {
+  const { categoryId } = req.params;
+  const { subCategoryId } = req.params;
+
+  // Fetch products with the specified category or subcategory
+  const products = await prisma.product.findMany({
+    where: {
+      OR: [
+        { categoryId: parseInt(categoryId) },
+        { subCategoryId: parseInt(subCategoryId) },
+      ],
+    },
+    select: {
+      size: {
+        select: {
+          name: true,
+        },
+      },
+    },
+  });
+
+  // Extract and consolidate sizes from the products
+  const allSizes = [];
+  products.forEach((product) => {
+    product.size.forEach((size) => {
+      allSizes.push(size.name);
+    });
+  });
+
+  // Make sizes unique
+  const uniqueSizes = [...new Set(allSizes)];
+
+  res.json(uniqueSizes); // Send the unique sizes as a JSON response
+
+};
+
+const getImageColorNames = async (req, res) => {
+  const { categoryId } = req.params;
+  const { subCategoryId } = req.params;
+
+  // Fetch products with the specified category or subcategory
+  const products = await prisma.product.findMany({
+    where: {
+      OR: [
+        { categoryId: parseInt(categoryId) },
+        { subCategoryId: parseInt(subCategoryId) },
+      ],
+    },
+    select: {
+      images: {
+        select: {
+          color: {
+            select: {
+              name: true,
+            },
+          },
+        },
+      },
+    },
+  });
+
+  // Extract and consolidate image color names from the products
+  const allImageColors = [];
+  products.forEach((product) => {
+    product.images.forEach((image) => {
+      if (image.color) {
+        allImageColors.push(image.color.name);
+      }
+    });
+  });
+
+  // Make image color names unique
+  const uniqueImageColors = [...new Set(allImageColors)];
+
+  res.json(uniqueImageColors); // Send the unique image color names as a JSON response
+};
+
+
+
+
+
+
+export default { create, getOne, deleteOne, updateOne, getProductsBySubCategory, getProductSizes, getImageColorNames };

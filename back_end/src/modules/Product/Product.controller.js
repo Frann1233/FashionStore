@@ -17,6 +17,19 @@ router.get("/:id", (req, res) => productService.getOne(req, res));
 router.patch("/:id", (req, res) => productService.updateOne(req, res));
 
 //Delete Product
-router.delete("/", (req, res) => productService.deleteOne(req, res));
+router.delete("/:id", (req, res) => productService.deleteOne(req, res));
+
+//Get Products in subCategory
+// router.get("/category/:categoryId/subCategory/:subCategoryId", (req, res) => productService.getManyByCategorySubCategory(req, res));
+
+router.get("/subCategory/:subCategoryId", (req, res) => productService.getProductsBySubCategory(req, res));
+
+// router.get("/browse/:sex/:category/:categoryId/:subCategoryId", (req, res) => productService.getProductsBySubCategory(req, res));
+
+router.get("/sizes/:categoryId/:subCategoryId", (req, res) => productService.getProductSizes(req, res));
+
+router.get("/colors/:categoryId/:subCategoryId", (req, res) => productService.getImageColorNames(req, res));
+
+
 
 export default router;

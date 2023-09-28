@@ -2,10 +2,14 @@ import { prisma } from "../../main.js";
 
 const create = async (req, res) => {
   const name = req.body.name;
+  const images = req.body.images;
+  // const subCategories = req.body.subCategories
 
   const Category = await prisma.category.create({
     data: {
       name,
+      images: images || [],
+      // subCategories: subCategories || [],
     },
   });
 
@@ -14,6 +18,7 @@ const create = async (req, res) => {
 
 const get = async (req, res) => {
   const filterName = req.query.filterName
+  const filterSubCategory = req.query.filterSubCategory
   const Categorys = await prisma.category.findMany({
     where: {
       AND: [
@@ -22,6 +27,15 @@ const get = async (req, res) => {
             contains: filterName,
           }
         },
+        {
+          subCategories: {
+            some: {
+              name: {
+                contains: filterSubCategory,
+              }
+            }
+          }
+        }
       ]
     }
   });
@@ -35,7 +49,11 @@ const getOne = async (req, res) => {
     where: {
       id: parseInt(id),
     },
+    include: {
+      subCategories: true,
+    },
   });
+
 
   res.send(specifiedCategory);
 };
@@ -43,12 +61,16 @@ const getOne = async (req, res) => {
 const updateOne = async (req, res) => {
   const id = req.params.id;
   const name = req.body.name;
+  const images = req.body.images;
+  const subCategories = req.body.subCategories;
   const CategoryUpdate = await prisma.category.update({
     where: {
       id: parseInt(id),
     },
     data: {
       name,
+      images: images || [],
+      subCategories: subCategories || [],
     },
   });
 

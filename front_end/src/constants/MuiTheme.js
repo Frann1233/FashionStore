@@ -16,7 +16,13 @@ const theme = createTheme({
     },
     price: {
       main: '#FF0000'
+    },
+    adminOrange: {
+      main: ' #F5761A'
     }
+  },
+  shape: {
+    borderRadius: 20
   },
   components: {
     MuiTypography: {
@@ -24,7 +30,8 @@ const theme = createTheme({
         {
           props: { variant: 'body2' },
           style: {
-            fontWeight: 100
+            fontWeight: 100,
+            fontSize: '1.2rem'
           }
         }
       ]

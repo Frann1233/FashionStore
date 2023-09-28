@@ -10,12 +10,20 @@ const filters = [
   { name: 'filterSex', operator: 'equals', key: 'sex' },
   { name: 'filterTypeId', operator: 'equals', key: 'typeId' },
   { name: 'filterCategoryId', operator: 'equals', key: 'categoryId' },
+  { name: 'filterCategory', operator: 'contains', key: 'category.name' },
   { name: 'filterBrandId', operator: 'equals', key: 'brandId' },
   { name: 'filterMaterialId', operator: 'equals', key: 'materialId' },
   { name: 'filterStyleId', operator: 'equals', key: 'styleId' },
   { name: 'filterSeasonId', operator: 'equals', key: 'seasonId' },
-  { name: 'filterSizeId', operator: 'equals', key: 'sizeId' },
-  { name: 'filterColorId', operator: 'equals', key: 'colorId' },
+  { name: 'filterSizeId', operator: 'contains', key: 'size' },
+  { name: 'filterSize', operator: 'contains', key: 'size.name' },
+  { name: 'filterColorId', operator: 'contains', key: 'color' },
+  { name: 'filterColor', operator: 'contains', key: 'color.name' },
+  { name: 'filterImageColor', operator: 'contains', key: 'images.color.name' },
+  { name: 'minPrice', operator: 'gte', key: 'price' },
+  { name: 'maxPrice', operator: 'lte', key: 'price' },
+  { name: 'priceLow', operator: 'gte', key: 'price' },
+  { name: 'priceHigh', operator: 'lte', key: 'price' },
 ];
 
 const productMiddleware = async (req, res, next) => {
@@ -27,27 +35,83 @@ const productMiddleware = async (req, res, next) => {
       if (value) {
         if (filter.key.endsWith('Id')) {
           where[filter.key] = parseInt(value);
+        } else if (filter.key.includes('.')) {
+          const subObject = filter.key.split('.')
+          where[subObject[0]] = {
+            [subObject[1]]: {
+              [filter.operator]: value
+            }
+          }
         } else {
           where[filter.key] = {
             [filter.operator]: value
           };
+          console.log("Filter Conditions:", where);
         }
       }
     }
 
+    const categoryId = req.query.categoryId;
+    const subCategoryId = req.query.subCategoryId;
+    const minPrice = parseFloat(req.query.minPrice);
+    const maxPrice = parseFloat(req.query.maxPrice);
+    const filterSize = req.query.size;
+    const filterImageColor = req.query.imageColor;
+
+    if (categoryId) {
+      where.categoryId = parseInt(categoryId);
+    }
+
+    if (subCategoryId) {
+      where.subcategoryId = parseInt(subCategoryId);
+    }
+
+    if (!isNaN(minPrice)) {
+      where.price = {
+        gte: minPrice,
+      };
+    }
+
+    if (!isNaN(maxPrice)) {
+      where.price = {
+        ...where.price,
+        lte: maxPrice,
+      };
+    }
+
+    if (filterSize && Array.isArray(filterSize) && filterSize.length > 0) {
+      where.size = {
+        some: {
+          name: {
+            in: filterSize, // Use filterSize array to filter by multiple sizes
+          },
+        },
+      };
+    }
+
+    if (filterImageColor && Array.isArray(filterImageColor) && filterImageColor.length > 0) {
+      where.images = {
+        some: {
+          color: {
+            name: {
+              in: filterImageColor, // Use filterImageColor array to filter by multiple image color names
+            },
+          },
+        },
+      };
+    }
+
+
     const skip = parseInt(req.query.skip ?? DEFAULT_PRODUCT_SKIP);
     const take = parseInt(req.query.take ?? DEFAULT_PRODUCT_TAKE);
-    const orderByPrice = req.query.orderByPrice;
+    const sortByPrice = req.query.sortByPrice;
     let orderBy = {};
-    if (orderByPrice === 'lowToHigh') {
-      orderBy = {
-        price: 'asc',
-      };
-    } else if (orderByPrice === 'HighToLow') {
-      orderBy = {
-        price: 'desc',
-      }
+    if (sortByPrice === 'lowToHigh') {
+      orderBy = { price: 'asc' };
+    } else if (sortByPrice === 'highToLow') {
+      orderBy = { price: 'desc' };
     }
+
     const products = await prisma.product.findMany({
       skip,
       take,
@@ -67,6 +131,7 @@ const productMiddleware = async (req, res, next) => {
         category: {
           select: {
             name: true,
+            subCategories: true,
           },
         },
         brand: {
@@ -99,6 +164,7 @@ const productMiddleware = async (req, res, next) => {
             name: true,
           },
         },
+        images: true,
       },
     });
 

@@ -9,6 +9,8 @@ import SizeStore from './SizeStore';
 import SortStore from './SortStore';
 import StyleStore from './StyleStore';
 import TypeStore from './TypeStore';
+import AuthStore from './AuthStore';
+import CartStore from './CartStore';
 import HttpService from '../common/HttpService';
 
 const httpService = new HttpService();
@@ -23,6 +25,8 @@ const store = {
   sizeStore: new SizeStore(httpService),
   styleStore: new StyleStore(httpService),
   typeStore: new TypeStore(httpService),
+  authStore: new AuthStore(httpService),
+  cartStore: new CartStore(),
 }
 
 const componentStore = {
@@ -34,6 +38,7 @@ const ComponentContext = createContext(componentStore);
 
 export const useStore = () => useContext(StoreContext);
 export const useComponentStore = () => useContext(ComponentContext);
+
 export default {
   store,
   componentStore,

@@ -103,7 +103,6 @@ export default class BrandStore {
     this.fetchedBrand.map(brand => {
       result.push(brand.name)
     });
-    console.log(result)
     return result;
   }
 }

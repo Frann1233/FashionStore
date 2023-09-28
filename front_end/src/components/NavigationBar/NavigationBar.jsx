@@ -13,6 +13,8 @@ import Tooltip from '@mui/material/Tooltip';
 import MenuItem from '@mui/material/MenuItem';
 import navigationBarStyles from './NavigationStyles';
 import { Link } from '@mui/material';
+import ShoppingCartDrawer from '../ShoppingCart/ShoppingCartDrawer';
+
 
 const NavigationBar = () => {
   const classes = navigationBarStyles();
@@ -20,18 +22,33 @@ const NavigationBar = () => {
   const pages = [
     {
       label: 'Mens',
-      link: '/browse'
+      link: '/browse/male'
     },
     {
       label: 'Womans',
-      link: ''
+      link: '/browse/female'
     },
     {
       label: 'Kids',
-      link: ''
+      link: '/browse/kids'
     },
   ];
-  const settings = ['Profile', 'Account', 'Dashboard', 'Logout'];
+  // const settings = ['Profile', 'Account', 'Admin', 'Logout'];
+
+  const settings = [
+    {
+      label: 'Profile',
+      link: '/profile',
+    },
+    {
+      label: 'Account',
+      link: '/account',
+    },
+    {
+      label: 'Admin',
+      link: '/admin',
+    },
+  ];
 
   const [anchorElNav, setAnchorElNav] = React.useState(null);
   const [anchorElUser, setAnchorElUser] = React.useState(null);
@@ -50,6 +67,7 @@ const NavigationBar = () => {
   const handleCloseUserMenu = () => {
     setAnchorElUser(null);
   };
+
 
   return (
     <AppBar position="relative" className={classes.appBar}>
@@ -119,6 +137,10 @@ const NavigationBar = () => {
           </Box>
 
           <Box>
+            <ShoppingCartDrawer />
+          </Box>
+
+          <Box>
             <Tooltip title="Open settings">
               <IconButton onClick={handleOpenUserMenu} >
                 <Avatar alt="Remy Sharp" src="/static/images/avatar/2.jpg" />
@@ -141,15 +163,17 @@ const NavigationBar = () => {
               onClose={handleCloseUserMenu}
             >
               {settings.map((setting) => (
-                <MenuItem key={setting} onClick={handleCloseUserMenu}>
-                  <Typography textAlign="center">{setting}</Typography>
-                </MenuItem>
+                <Link underline='none' href={setting.link} >
+                  <MenuItem key={setting.label} onClick={handleCloseUserMenu}>
+                    <Typography textAlign="center">{setting.label}</Typography>
+                  </MenuItem>
+                </Link>
               ))}
             </Menu>
           </Box>
         </Toolbar>
       </Container>
-    </AppBar>
+    </AppBar >
   )
 }
 

@@ -25,6 +25,8 @@ class HttpService {
 
   type;
 
+  auth
+
   constructor() {
     this.product = {
       get: this.#getProductById,
@@ -32,6 +34,11 @@ class HttpService {
       update: this.#updateProduct,
       create: this.#createProduct,
       delete: this.#deleteProduct,
+      getSimilarProducts: this.#getSimilarProducts,
+      // getProductsBySubCategory: this.#getProductsBySubCategory,
+      getProductsBySubcategory: this.#getProductsBySubcategory,
+      getProductSizes: this.#getProductSizes,
+      getProductImageColors: this.#getProductImageColors,
     };
 
     this.brand = {
@@ -97,6 +104,11 @@ class HttpService {
       update: this.#updateType,
       delete: this.#deleteType,
     };
+
+    this.auth = {
+      login: this.#atuhLogin,
+      register: this.#authRegister
+    }
   }
 
   //Product
@@ -128,7 +140,7 @@ class HttpService {
     name,
     description,
     price,
-    image,
+    images,
     type,
     category,
     brand,
@@ -143,7 +155,7 @@ class HttpService {
       name,
       description,
       price,
-      image,
+      images: images.map(imageObj => imageObj.file),
       type,
       category,
       brand,
@@ -161,7 +173,7 @@ class HttpService {
     name,
     description,
     price,
-    image,
+    images,
     type,
     category,
     brand,
@@ -176,7 +188,7 @@ class HttpService {
       name,
       description,
       price,
-      image,
+      images: images.map(imageObj => imageObj.file),
       type,
       category,
       brand,
@@ -198,6 +210,57 @@ class HttpService {
     });
     return result;
   }
+
+  async #getSimilarProducts({ category, sex, material }) {
+    const result = await instance.get('/product', {
+      params: {
+        category,
+        sex,
+        material
+      },
+    });
+    return result;
+  }
+
+  // async #getProductsBySubCategory({ categoryId, subCategoryId }) {
+  //   const result = await instance.get(`/product/category/${categoryId}/subCategory/${subCategoryId}`,)
+  //   return result;
+  // }
+
+  async #getProductsBySubcategory({ subCategoryId }) {
+    try {
+      const result = await instance.get(`/product/subCategory/${subCategoryId}`);
+      return result;
+    } catch (error) {
+      // Handle errors here
+      console.error("Error fetching products by subcategory:", error);
+      throw error; // Rethrow the error to propagate it
+    }
+  }
+
+  async #getProductSizes({ categoryId, subCategoryId }) {
+    try {
+      const response = await instance.get(`/product/sizes/${categoryId}/${subCategoryId}`);
+      return response.data;
+    } catch (error) {
+      // Handle errors here
+      console.error('Error fetching product sizes:', error);
+      throw error; // Rethrow the error to propagate it
+    }
+  }
+
+  async #getProductImageColors({ categoryId, subCategoryId }) {
+    try {
+      const response = await instance.get(`/product/colors/${categoryId}/${subCategoryId}`);
+      return response.data;
+    } catch (error) {
+      // Handle errors here
+      console.error('Error fetching product image colors:', error);
+      throw error; // Rethrow the error to propagate it
+    }
+  }
+
+
 
   //Brand
   async #getBrands({ pagination: { skip, take } }) {
@@ -250,19 +313,30 @@ class HttpService {
     return result;
   }
 
-  async #createCategory({ name }) {
+  async #createCategory({ name, image, subCategories }) {
     const result = await instance.post('/category', {
       name,
+      image: image.map(imageObj => imageObj.file),
+      subCategories: subCategories.map(subCategory => ({
+        name: subCategory.name,
+        image: subCategory.image,
+      }))
     });
     return result.data;
   }
 
-  async #updateCategory({ categoryId, name }) {
+  async #updateCategory({ categoryId, name, image, subCategories }) {
     const result = await instance.patch(`/category/${categoryId}`, {
       name,
+      image: image.map(imageObj => imageObj.file),
+      subCategories: subCategories.map(subCategory => ({
+        name: subCategory.name,
+        image: subCategory.image,
+      })),
     });
     return result.data;
   }
+
 
   async #deleteCategory({ categoryId }) {
     const result = await instance.delete(`/brands/${categoryId}`);
@@ -476,6 +550,25 @@ class HttpService {
 
   async #deleteType({ typeId }) {
     const result = await instance.delete(`/type/${typeId}`);
+    return result;
+  }
+
+  // Auth Login
+  async #atuhLogin({ email, password }) {
+    const result = await instance.post(`/auth/login`, {
+      email,
+      password,
+    })
+    return result;
+  }
+
+  // Auth Register
+  async #authRegister({ email, password, name }) {
+    const result = await instance.post(`/auth/register`, {
+      email,
+      password,
+      name,
+    })
     return result;
   }
 

@@ -25,7 +25,7 @@ function Hero({ appBarHeight }) {
       overflow='hidden'
       bgcolor='secondary.main'
     >
-      <Link href='/browse' height={'100%'} width={'100%'}>
+      <Link href='/browse/male' height={'100%'} width={'100%'}>
         <img
           alt='male'
           onMouseOver={() => setHovered('male')}
@@ -39,7 +39,7 @@ function Hero({ appBarHeight }) {
           <Typography variant='h2' fontWeight={700}>Shop Male</Typography>
         </Button>
       )}
-      <Link href='/browse' height={'100%'} width={'100%'}>
+      <Link href='/browse/female' height={'100%'} width={'100%'}>
         <img
           alt='female'
           onMouseOver={() => setHovered('female')}

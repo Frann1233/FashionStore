@@ -1,33 +1,25 @@
 import { Box, Container, Tabs as MuiTabs, Tab } from '@mui/material'
-import React, { useState } from 'react'
+import React from 'react'
 import TabPanel from './TabPanel';
 
-const Tabs = ({ firstTab, secondTab, firstTabLabel, secondTabLabel, thirdTab, thirdTabLabel }) => {
-  const [value, setValue] = useState(0);
-
-  const handleChange = (event, newValue) => {
-    setValue(newValue);
-  };
+const Tabs = ({ tabs = [], tabIndex, setTabIndex }) => {
 
   return (
     <Box width={'100%'} >
       <Container maxWidth={false} disableGutters>
         <Box borderBottom={1} borderColor={'divider'} justifyContent={'center'} display={'flex'} >
-          <MuiTabs value={value} onChange={handleChange} aria-label="basic tabs example" >
-            <Tab label={firstTabLabel} />
-            <Tab label={secondTabLabel} />
-            <Tab label={thirdTabLabel} />
+          <MuiTabs value={tabIndex} onChange={setTabIndex} aria-label="basic tabs example" >
+            {tabs.map(tab => {
+              return <Tab label={tab.label} />
+            })}
           </MuiTabs>
         </Box>
-        <TabPanel value={value} index={0}>
-          {firstTab}
-        </TabPanel>
-        <TabPanel value={value} index={1}>
-          {secondTab}
-        </TabPanel>
-        <TabPanel value={value} index={2}>
-          {thirdTab}
-        </TabPanel>
+
+        {tabs.map((tab, index) => {
+          return <TabPanel value={tabIndex} index={index}>
+            {tab.element}
+          </TabPanel>
+        })}
       </Container >
     </Box >
   )
